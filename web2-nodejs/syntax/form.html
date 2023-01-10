@@ -1,0 +1,11 @@
+<!-- 사용자가 입력한 정보를 action속성이 가르키는 서버로 queryString의 형태로 전송 -->
+<!-- 서버에서 데이터를 가져올 때는 get으로, 서버에 데이터를 수정하는 행위를 할 때는 post로 -->
+<form action="http://localhost:3000/process_create" method="post">
+    <p><input type="text" name="title"></p>
+    <p>
+        <textarea name="description"></textarea>
+    </p>
+    <p>
+        <input type="submit">
+    </p>
+</form>
