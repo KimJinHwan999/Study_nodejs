@@ -2,10 +2,37 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var qs = require('querystring');
-var template = require('./lib/template.js');
-// 사용자가 입력한 정보(외부에서 들어온 정보)는 다 path로 바꿔줘야함 -> 오염된 정보 쳐내야 함
-var path = require('path'); 
-var sanitizeHtml = require('sanitize-html');
+
+// refactoring (리팩토링 : 코드 간결화 시키는 작업)
+var template = {
+    HTML : function(title, list, body, control){
+        return `
+        <!doctype html>
+        <html>
+        <head>
+            <title>WEB1 - ${title}</title>
+            <meta charset="utf-8">
+        </head>
+        <body>
+            <h1><a href="/">Web</a></h1>
+            ${list}
+            ${control}
+            ${body}
+        </body>
+        </html>     
+        `;
+    },
+    list : function(filelist){
+        var list = '<ul>';
+        var i = 0;
+        while(i < filelist.length){
+            list = list + `<li><a href='/?id=${filelist[i]}'>${filelist[i]}</a></li>`
+            i++;
+        }
+        list = list + '</ul>';
+        return list;
+    }
+}
 
 var app = http.createServer(function(request, response){
     var _url = request.url;
@@ -27,20 +54,15 @@ var app = http.createServer(function(request, response){
             });
         }else{  // 리스트에 링크를 눌렀을 때
             fs.readdir(`data/`, function(err, filelist){
-                var filteredId = path.parse(queryData.id).base;
-                fs.readFile(`data/${filteredId}`, 'utf-8', function(err, description){
+                fs.readFile(`data/${queryData.id}`, 'utf-8', function(err, description){
                     var title = queryData.id;
-                    var sanitizedTitle = sanitizeHtml(title);
-                    var sanitizedDescription = sanitizeHtml(description, {
-                        allowedTags:['h1']
-                    });
                     var list = template.list(filelist);
-                    var html = template.HTML(sanitizedTitle, list, 
-                        `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, 
+                    var html = template.HTML(title, list, 
+                        `<h2>${title}</h2>${description}`, 
                         `<a href='/create'>create</a>
-                         <a href=/update?id=${sanitizedTitle}>update</a>
+                         <a href=/update?id=${title}>update</a>
                          <form action='delete_process' method='post'>
-                            <input type='hidden' name='id' value='${sanitizedTitle}'>
+                            <input type='hidden' name='id' value='${title}'>
                             <input type='submit' value='delete'>
                          </form>`);
                     response.writeHead(200);
@@ -81,8 +103,7 @@ var app = http.createServer(function(request, response){
         });
     }else if(pathname === '/update'){
         fs.readdir(`data/`, function(err, filelist){
-            var filteredId = path.parse(queryData.id).base;
-            fs.readFile(`data/${filteredId}`, function(err, description){
+            fs.readFile(`data/${queryData.id}`, function(err, description){
                 var title = queryData.id;
                 var form = `
                 <form action='/update_process' method='post'>
@@ -126,8 +147,7 @@ var app = http.createServer(function(request, response){
         request.on('end', function(){
             var post = qs.parse(body);
             var id = post.id;
-            var filteredId = path.parse(id).base;
-            fs.unlink(`data/${filteredId}`, function(err){
+            fs.unlink(`data/${id}`, function(err){
                 response.writeHead(302, {Location : `/`});
                 response.end();
             });
