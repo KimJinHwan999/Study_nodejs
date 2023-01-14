@@ -213,6 +213,14 @@ pm2 list 	: 프로세스 보기
 pm2 stop main : main 프로그램 끄기
 pm2 log : 문제점 로그를 볼 수 있음 (오류확인)
 
+pm2 list
+pm2 kill : pm2 로 킨거 다끄기
+pm2 start main.js --watch --no-daemon : daemon은 백그라운드로 실행되는 프로그램 
+(노데몬이니까 앞에서 보이게 실행 -> 오류가 있다거나, console.log와 같은 것들을 보여주게 함)
+(하지만 원하지 않는 타이밍에 서버가 꺼졌다 켜짐)
+pm2 start main.js --watch --ignore-watch="data/* sessions" --no-daemon
+(파일을 생성하거나 수정하는 경우에 서버가 꺼졌다가 켜진다면, ignore 추가. sessions에 대한 관리도 하고싶다면 띄어쓰고 sessions 추가)
+
 
 30강 폼
 사용자가 서버쪽으로 데이터를 전송하기 위해 HTML 폼 사용
