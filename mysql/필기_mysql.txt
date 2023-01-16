@@ -1,0 +1,32 @@
+brew install mysql
+
+mysql.server start
+
+mysql_sequre_installation
+
+비밀번호 복잡도 검사 과정 (n)
+비밀번호 입력 & 확인 (1234)
+익명 사용자 삭제 (y)
+원격 접속 허용하지 않을 것인가? (y)
+test DB 삭제 (n)
+previlege 테이블을 다시 로드할 것인지 (y)
+
+mysql -u root -p : mysql 사용하기
+brew services start mysql : 서버 재부팅 상관없이 켜놓기
+
+create database (이름); : DB생성
+
+show databases; : 만들어진 디비 확인
+
+use (이름) : 사용할 디비 선택
+
+----
+워크벤치
+
+./mysql -uroot -p -hlocalhost : 사용자, 비밀번호 입력, 내 컴퓨터 (로컬호스트 = 127.0.0.1) -> 안 쓰고 엔터 쳐도 MySQL 서버 가르키게 됨
+./mysql -uroot -p : 접속
+
+워크벤치
+- 더하기버튼 클릭
+- hostname = 127.0.0.1
+- schema 에 원하는 DB 클릭 (하단에 active 표시)
