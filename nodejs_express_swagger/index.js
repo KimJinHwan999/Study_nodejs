@@ -1,20 +1,22 @@
 const express = require('express')  
+const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');  
+const compression = require('compression'); 
+const sanitizeHtml = require('sanitize-html');
+const template = require('./lib/template.js');
+const { swaggerUi, specs } = require("./swagger/swagger");
+
 const app = express()
-var fs = require('fs');
-var path = require('path');
-var bodyParser = require('body-parser');  
-var compression = require('compression'); 
-var sanitizeHtml = require('sanitize-html');
-var template = require('./lib/template.js');
 
 app.use(express.json())
 // app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.urlencoded({ extended: false })); 
 app.use(compression()); 
 
-const { swaggerUi, specs } = require("./swagger/swagger")
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))
+
 
 /**
  * @swagger

@@ -38,3 +38,41 @@ const { swaggerUi, specs } = require('./modules/swagger');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
 
 -> app.js에 두 줄 추가 : api-docs로 이동할 수 있음
+
+---
+
+라우터 -> 기능별로? /login , /admin
+노드 js 로그인 구현 / 자바로 로그인 구현 (JWT 토큰)
+
+cors() : 크로스 오리진 오류 해결 ( 크롬 브라우저에서 내는 오류 ) : IP와 포트가 다른 경우 
+axios?
+
+api 폴더 안에 기능별로 나눠서 js파일들 정리하기 (	
+config 폴더 -> config.js 에서 module.exports ={…정리…}
+migrations
+models
+
+
+.env  파일에 DB관련 정보 정리
+
+시퀄라이즈 : DB테이블 한번에 생성
+
+ORM => 1. createTable (‘ 사람 얼마나 왔는지 확인하는 테이블’) 
+
+a -> 
+b -> 
+
+DB
+A : 
+B :
+C :
+
+docker
+
+ORM을 사용하면 SQL 공격에서 자유로와진다.
+시퀄라이즈 ->  보안성 굿
+
+1. JWT 개념 확인해보기
+2. 자바, 자바스크립트
+JWT 로그인 로그아웃 회원가입 내정보수정 (시퀄라이저 이용하여 테이블 자동 생성)
+유저정보 유저조회 삭제된 유저 리스트(CRUD 가능하다면..)

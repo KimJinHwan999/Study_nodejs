@@ -30,3 +30,17 @@ use (이름) : 사용할 디비 선택
 - 더하기버튼 클릭
 - hostname = 127.0.0.1
 - schema 에 원하는 DB 클릭 (하단에 active 표시)
+
+---
+참고 사이트 : https://velog.io/@ktaewon98/Node-Mysql-ORM%EC%9C%BC%EB%A1%9C-%EC%82%AC%EC%9A%A9%ED%95%B4%EB%B3%B4%EA%B8%B0
+mysql ORM
+- npm install mysql2 sequelize sequelize-cli
+- npx sequelize init : 초기화
+    - database에 비밀번호 변경
+    - npx sequelize db:create --env development : DB 생성
+- npx sequelize model:generate --name Member --attributes name:string,team:string,position:string,emailAddress:string,phoneNumber:string,admissionDate:date,birthday:date,profileImage:string :  Member 테이블 생성 (주의! 테이블 이름을 단수로 정해도 자동으로 복수로 바뀜)
+    - models, migrations 디렉토리에 파일 생김 (마이그레이션 : 데이터베이스에서 일어나는 모든 변경사항을 의미 (테이블 생성, 컬럼 변경 등))
+    - migrations 의 up 과 down 메소드 : migration을 적용할 때, 적용 해제 할 때
+- npx sequelize-cli db:migrate : 테이블 생성 마무리
+
+-npx sequelize seed:generate --name initialMembers : 시드데이터넣기
