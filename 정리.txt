@@ -1,0 +1,40 @@
+npm i swagger-jsdoc swagger-ui-express --save-dev
+
+-> swagger 모듈 설치
+
+import swaggereJsdoc from 'swagger-jsdoc'
+export const options = {
+	swaggerDefinition:{
+    	openapi: "3.0.3",
+        info:{
+        	title: 'Test API';
+            version: '1.0.0',
+            description: 'Test API with express',
+        },
+        servers:[
+        	{
+            	url:"http://localhost:4000",
+            },
+       ],
+	},
+    apis:['/routes/*.js', './swagger/*', './models/*.js']
+};
+
+const specs = swaggerJsdoc(options);
+
+module.exports = {
+	swaggerUi,
+    specs
+}
+
+-> swagger.js 파일 추가 (apis: 경로 추가 중요)
+
+const { swaggerUi, specs } = require('./modules/swagger');
+
+// ...
+// ...
+// ...
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+
+-> app.js에 두 줄 추가 : api-docs로 이동할 수 있음
