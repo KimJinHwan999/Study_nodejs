@@ -1,0 +1,130 @@
+SWAGGER = API를 관리하고 명세하는 도구
+API 명세는 팀단위로 진행할 때 필수
+클라이언트와 서버개발을 다양한 개발자가 포진되어 있는 경우 반드시 필요 (3명 이상이라면 반드시 사용이 되어야 한다.)
+Git 과 같이 기본적인 도구
+
+서버 개발자 (회원관리를 위한 회원 API 개발) --(엑셀파일 : 문서관리 어려움 / Swagger Hub)--> 클라이언트 개발자 
+
+스웨거 : 백과 프론트 엔드 사이트에서 어떤 방식으로 데이터를 주고 받을지에 대한 명세서 관리 도구
+Rest API : 정보들이 주고받아지는데 있어서 개발자들 사이에 사용된 형식 (우체국의 송장) -> 어떤 프로그램, 프레임워크를 쓰던 이거 쓰면 됨
+API ? 모든 프로그램은 제어장치를 만들어야 함. (리모콘, 버튼, 키보드 , 마우스 와 같은 인터페이스 - 사용자와 기계를 소통창구 / 버튼, 스크롤바, 슬라이더 등과 같은 UI / 기계와 기계, 소프트웨어와 기계가 주고받는 소통창구도 필요함)
+기상청 서버와 여기서 정보를 받는 스마트폰 ( 날짜, 지역, 조회내용 -> 정보 요청 -> 어떤 형식으로 답변이 옴 ) << API
+REST API ? 프론트엔드 웹에서 서버에 데이터를 요청하거나 배달앱에서 주문 넣거나 할때 RESTAPI 사용 (요청 모습 자체에서 추론 가능)
+예를들어 쿼리 스트링을 주소로 파악해서 무슨 일을 하는지 대충 확인 가능. (class라면 반들을 조회, 인덱스를 붙이면 학생들의 정보, 조건을 붙여서 성별확인 한다던지..)
+이러한 URI 뿐만아니라 CRUD 작업 전부 규칙이 있음 (GET DELETE / POST PUT PATCH -> 여기엔 BODY가 있어서 더 많은 정보를, 감춰서 담을 수 있음 / 사실 POST로 전부 다 할 수 있지만, RESTFUL 하게 API를 만들기 위해서는 목적에 따라 구분해서 사용)
+get 은 read / post는 create / index를 가진 학생의 정보가 변경되었다? -> URI 에 변경할 학생의 인덱스 까지 뒤에 붙여준 다음, PUT 또는 PATCH를 사용해서 변경, UPDATE될 새 정보를 바디에 실어 보냄
+-> PUT은 정보를 통쨰로 갈아끼울 때 , PATCH는 정보 일부를 특정 방식으로 수정
+
+RESTAPI란 어떤 URI에 어떤 메소드를 작성할지 개발자들사이에 통용되는 약속 (RESTFUL한 서비스를 만들어보자!)
+
+open API : REST API를 위한 표준 명세 규격 
+
+2. 
+version : 개발자의 버전
+view documentation api 명세서의 문서만 확인 가능
+
+3.
+- npm install -g http-server (안되면 sudo) : http 서버 전역으로 설치 
+- http-server --cors로 실행 (콘솔창에 떠있는 주소로 접속했을 때, 해당 폴더를 만날 수 있음)
+- dist 내부에 index.html에 연결된 js파일의 url주소를, 내가 작성한 야믈파일의 주소로 변경해주기 -> 이제부터 index.html로 접근하면 내가 제작한 api주소로 접근하게 됨
+
+4. 
+NodeJS + Swagger (설치형 Swagger UI) : 실제 개발 프로젝트에서 선택하는 방법 (별도로 스웨거 문서를 기입하는 작업을 최대한 줄이고 서버 프로그램 상에서 빠르게 개발하는 방법)
+- npm install -g swagger
+- swagger project create swagger
+- express framework 선택
+- cd swagger
+- swagger project start (내부의 app.js 동작시킬 수 있는 것 -> 간단한 기능의 api틀이 제작되어있는 것)
+## 노드 10 모듈과 12 모듈의 차이로 Error initializing middleware 오류 발생
+## node_modules/bagpipes/lib/fittingTypes/user.js 경로로 가서
+## var split = err.message.split(path.set); -> var split = err.message.split('\n')[0].split(path.sep);으로 변경
+- app.js를 수정
+    - var SwaggerUi = require('swagger-tools/middleware/swagger-ui'); 추가
+    - // install middleware 에 추가
+      swaggerExpress.runner.swagger.host='127.0.0.1:10010';
+      app.use(SwaggerUi(swaggerExpress.runner.swagger));
+- 이제 http://127.0.0.1:10010/docs 주소로 이동하여 확인해보기
+    - api/swagger/swagger.yaml 파일의 문서가 출력되도록 문서가 작성되어있음
+- api_key 설정법
+    - app.js의 config 변수 수정
+        var config = {
+            appRoot: __dirname // required config
+            swaggerSecurityHandlers:{
+                api_key: function(req, authOrSecDef, scopesOrApiKey, cb){
+                // 요청 헤더 값이 api_key이고, 값이 'my_key'일 경우에만 실행을 허용한다.
+                if('my_key' === scopesOrApiKey){
+                    cb();
+                } else{
+                    cb(new Error('Acces Denied!'));
+                }
+                }
+            }
+        };
+    - swagger/api/swagger/swagger.yaml 수정
+
+        securityDefinitions:
+            api_key:
+                type: apiKey
+                in: query
+                name: api_key
+        security:
+            - api_key: [ ]
+
+- 새로운 함수 사용하는 법
+    - api/controllers/hello_world.js 수정으로 추가
+    - 함수 추가해주고, module.exports에 해당 함수 추가
+    - swagger.yaml 에 해당 함수 추가
+        - operationId : adder 로 수정
+        - parameter 추가
+        - 결과 반환되는 양식 추가 (맨 밑에)
+
+
+5. NodeJS 로 API 개발해보고 명세서 작성하는 법
+- npm init -y (프로젝트 초기화)
+- app.js 파일 생성 
+
+var express = require('express');
+var app = express();
+
+app.get('/', function(req, res){
+    res.send('Hello World');
+});
+
+app.listen(3000, function(){
+    console.log('Server Listening on port 3000!');
+});
+
+- npm install --save express (express 를 이용해서 실행)
+- node app.js 로 확인하기
+
+- express의  static 함수를 이용해서 public 폴더를 누구나 문서로 읽을 수 있는 형태로 제공
+
+app.use(express.static('public'));
+
+- public 폴더 생성
+
+- public 폴더 안에 dist 폴더 가져오기(docs 로 이름 변경)
+- public 폴더에 우리만의 swagger.yaml 파일 생성
+
+openapi: 3.0.0
+info:
+  version: '1.0.0'
+  title: 'My API'
+  description: 'My API'
+
+- js에 url 경로 http://localhost:3000/swagger.yaml 변경
+    - get 방식 밑에는 summary, parameters, responses 들어갈 수 있게 들여쓰기 맞추기
+
+
+
+주소별로 요청이 다르고, 들어가는 곳이 다르다.
+어떤 요청을 어떤 함수가 담당해 줄 것인가 가 Routing
+이런것을 기술하는걸 Router
+
+- npm install swagger-jsdoc swagger-ui-express --save-dev
+    - swagger-jsdoc : jsdoc주석으로 Swagger API 문서를 표현하기 위해 사용
+    - swagger-ui-express: swagger-ui와 express를 연결하기 위해 사용 
+
+
+
+
