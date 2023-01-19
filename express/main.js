@@ -1,16 +1,13 @@
 const express = require('express')  // express 모듈 로드
 const app = express()
-var fs = require('fs');
-var path = require('path');
-var qs = require('querystring');
+const fs = require('fs');
+const bodyParser = require('body-parser');  // bodyParser 모듈 로드
+const compression = require('compression'); // compression 모듈 로드
+const indexRouter = require('./routes/index');
+const topicRouter = require('./routes/topic');
+const helmet = require('helmet');
 
-var bodyParser = require('body-parser');  // bodyParser 모듈 로드
-var compression = require('compression'); // compression 모듈 로드
-
-var sanitizeHtml = require('sanitize-html');
-var template = require('./lib/template.js');
-
-
+app.use(helmet());
 app.use(express.static('public')); // static 파일 찾아오는 모듈
 
 // bodyParser 사용 (폼 데이터 형식 처리)
@@ -41,111 +38,22 @@ app.get('*', function(request, response, next){
   });
 })
 
-app.get('/', function(request, response){
-    var title = 'Welcome';
-    var description = 'Hello, Node.js';
-    var list = template.list(request.list);
-    var html = template.HTML(title, list,
-      `<h2>${title}</h2>${description}
-      <img src="/images/hello.jpg" style="width:300px" display:block;>`,  // 이미지 경로 주기 (static 모듈)
-      `<a href="/create">create</a>`
-    );
-    response.send(html);
-});
+app.use('/', indexRouter);
+// /topic라고 시작하는 주소들에게 topicRouter라는 미들웨어를 적용하겠다는 뜻
+app.use('/topic', topicRouter);
 
-app.get('/page/:pageId', function(request, response){
-  var filteredId = path.parse(request.params.pageId).base;
-  fs.readFile(`./data/${filteredId}`, 'utf8', function(err, description){
-    var title = request.params.pageId;
-    var sanitizedTitle = sanitizeHtml(title);
-    var sanitizedDescription = sanitizeHtml(description, {
-      allowedTags:['h1']
-    });
-    var list = template.list(request.list);
-    var html = template.HTML(sanitizedTitle, list,
-      `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
-      ` <a href="/create">create</a>
-        <a href="/update/${sanitizedTitle}">update</a>
-        <form action="/delete_process" method="post">
-          <input type="hidden" name="id" value="${sanitizedTitle}">
-          <input type="submit" value="delete">
-        </form>`
-    );
-    response.send(html);
-  });
-});
 
-app.get('/create', function(request, response){
-  var title = 'WEB - create';
-  var list = template.list(request.list);
-  var html = template.HTML(title, list, `
-    <form action="/create_process" method="post">
-      <p><input type="text" name="title" placeholder="title"></p>
-      <p>
-        <textarea name="description" placeholder="description"></textarea>
-      </p>
-      <p>
-        <input type="submit">
-      </p>
-    </form>
-  `, '');
-  response.send(html);
-});
+// 미들웨어는 순차적으로 실행되기 때문에, 마지막까지 쭉 찾다가 찾는 파일이 없으면 404를 보내줌
+// 그렇기 때문에 404는 마지막에 위치시킴
+app.use((req, res, next) => { 
+  res.status(404).send("Sorry can't find that!")
+})
 
-app.post('/create_process', function(request, response){
-  var post = request.body;
-  var title = post.title;
-  var description = post.description;
-  fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-    response.writeHead(302, {Location: `/?id=${title}`});
-    response.end();
-  });
-});
-
-app.get('/update/:pageId', function(request, response){
-  var filteredId = path.parse(request.params.pageId).base;
-  fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
-    var title = request.params.pageId;
-    var list = template.list(request.list);
-    var html = template.HTML(title, list,
-      `
-      <form action="/update_process" method="post">
-        <input type="hidden" name="id" value="${title}">
-        <p><input type="text" name="title" placeholder="title" value="${title}"></p>
-        <p>
-          <textarea name="description" placeholder="description">${description}</textarea>
-        </p>
-        <p>
-          <input type="submit">
-        </p>
-      </form>
-      `,
-      `<a href="/create">create</a> <a href="/update/${title}">update</a>`
-    );
-    response.send(html);
-  });
-});
-
-app.post('/update_process', function(request, response){
-    var post = request.body;
-    var id = post.id;
-    var title = post.title;
-    var description = post.description;
-    fs.rename(`data/${id}`, `data/${title}`, function(error){
-      fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-        response.redirect(`/page/${title}`);
-      })
-    });
-});
-
-app.post('/delete_process', function(request, response){
-    var post = request.body;
-    var id = post.id;
-    var filteredId = path.parse(id).base;
-    fs.unlink(`data/${filteredId}`, function(error){
-      response.redirect('/');
-    })
-});
+// 에러를 핸들링 하기위한 미들웨어 
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
 
 app.listen(3000, function(){
   console.log(`Example app listening on port 3000`)
