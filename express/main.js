@@ -10,6 +10,9 @@ var compression = require('compression'); // compression 모듈 로드
 var sanitizeHtml = require('sanitize-html');
 var template = require('./lib/template.js');
 
+
+app.use(express.static('public')); // static 파일 찾아오는 모듈
+
 // bodyParser 사용 (폼 데이터 형식 처리)
 // bodyParser가 만들어내는 미들웨어를 표현하는 표현식
 // 1. 사용자가 요청할 때 마다 바디파서 미들웨어가 실행 됨 
@@ -23,19 +26,28 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(bodyparser.json())
 
 app.use(compression()); // 우리 어플리케이션은 요청이 들어올 때마다 bodyParser 미들웨어와 compression 미들웨어가 실행됨
-app.get('*', function(request, response, next){ // get으로 들어올 때만 파일 목록을 가져오게 됨
+
+// 전체 app에서 readdir 기능이 공통적으로 사용이 된다! (글 목록을 표현해주는 기능)
+// 이 기능을 미들웨어로서 처리!
+// 모든 코드에서 (모든 라우트에서) request.list를 통해 filelist에 접근 가능하다!
+// 하지만 post상황에선 굳이 filelist를 불러올 필요가 없음
+// app.use -> app.get으로 바꾸고, get 방식으로 들어오는 모든 요청에 readdir을 받아올 수 있도록 해줌
+// 결론 : function(){} 이게 readdir기능을 하는 미들웨어이다. 이것 처럼 express에서는 모든 라우터의 콜백함수는 전부 미들웨어 기능을 하는 것
+app.get('*', function(request, response, next){
   fs.readdir('./data', function(error, filelist){
     request.list = filelist;
-    next();
+    // next() 엔 그 다음에 호출되어야 할 미들웨어가 담겨있음
+    next();    
   });
-});
+})
 
 app.get('/', function(request, response){
     var title = 'Welcome';
     var description = 'Hello, Node.js';
     var list = template.list(request.list);
     var html = template.HTML(title, list,
-      `<h2>${title}</h2>${description}`,
+      `<h2>${title}</h2>${description}
+      <img src="/images/hello.jpg" style="width:300px" display:block;>`,  // 이미지 경로 주기 (static 모듈)
       `<a href="/create">create</a>`
     );
     response.send(html);
@@ -67,7 +79,7 @@ app.get('/create', function(request, response){
   var title = 'WEB - create';
   var list = template.list(request.list);
   var html = template.HTML(title, list, `
-    <form action="/create" method="post">
+    <form action="/create_process" method="post">
       <p><input type="text" name="title" placeholder="title"></p>
       <p>
         <textarea name="description" placeholder="description"></textarea>
@@ -80,7 +92,7 @@ app.get('/create', function(request, response){
   response.send(html);
 });
 
-app.post('/create', function(request, response){
+app.post('/create_process', function(request, response){
   var post = request.body;
   var title = post.title;
   var description = post.description;
